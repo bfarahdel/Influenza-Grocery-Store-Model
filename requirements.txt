@@ -1,4 +1,2 @@
 numpy==1.26.1
-pandas==2.1.1
-matplotlib==3.8.0
-Mesa==1.2.1
+mesa==1.2.1
