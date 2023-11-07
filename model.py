@@ -34,6 +34,7 @@ class Agent(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.type = "agent"
+        self.age = None
         self.transmission = self.model.transmission
         self.infected = False
         self.immune = False
@@ -94,10 +95,10 @@ class Agent(Agent):
 
 
 class Wall(Agent):
-    def __init__(self, pos, model, agent_class):
+    def __init__(self, pos, model, agent_type):
         super().__init__(pos, model)
         self.pos = pos
-        self.type = agent_class
+        self.type = agent_type
 
 
 class SIR(Model):
@@ -131,8 +132,8 @@ class SIR(Model):
         )
 
         for pos in walls:
-            agent_class = "wall"
-            agent = Wall(pos, self, agent_class)
+            agent_type = "wall"
+            agent = Wall(pos, self, agent_type)
             self.grid.position_agent(agent, pos[0], pos[1])
             self.schedule.add(agent)
 

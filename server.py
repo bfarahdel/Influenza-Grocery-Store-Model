@@ -35,7 +35,9 @@ line_charts = ChartModule(
         {"Label": "Susceptible", "Color": "mediumpurple"},
         {"Label": "Infected", "Color": "red"},
         {"Label": "Recovered", "Color": "green"},
-    ]
+    ],
+    canvas_height=190,
+    canvas_width=500,
 )
 
 server = ModularServer(SIR, [grid, line_charts], "SIR Model", model_params)
