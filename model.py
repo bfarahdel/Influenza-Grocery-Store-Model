@@ -1,3 +1,4 @@
+import math
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
@@ -8,11 +9,11 @@ import random
 
 
 model_params = {
-    "n_agents": UserSettableParameter(
-        "number", "Total Population (Max. 400)", 100, 0, 400, 1
-    ),
+    "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 40, 0, 100, 1),
+    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 40, 0, 100, 1),
+    "n_children": UserSettableParameter("number", "Children (Max. 100)", 40, 0, 100, 1),
     "init_infected": UserSettableParameter(
-        "number", "Initial Infected (Max. 400)", 2, 0, 400, 1
+        "number", "Initial Infected (Max. 400)", 1, 0, 400, 1
     ),
     "transmission": UserSettableParameter(
         "slider", "Transmission Probability", 0.75, 0, 1, 0.05
@@ -106,7 +107,9 @@ class SIR(Model):
 
     def __init__(
         self,
-        n_agents,
+        n_adults,
+        n_elderly,
+        n_children,
         width,
         height,
         init_infected,
@@ -114,7 +117,10 @@ class SIR(Model):
         infection_period,
         immunity_period,
     ):
-        self.n_agents = n_agents
+        self.n_adults = n_adults
+        self.n_elderly = n_elderly
+        self.n_children = n_children
+        self.n_agents = n_adults + n_elderly + n_children
         self.grid = SingleGrid(width, height, True)
         self.init_infected = init_infected
         self.transmission = transmission
@@ -144,12 +150,23 @@ class SIR(Model):
         infected_arr = np.array(
             [True] * self.init_infected + [False] * (self.n_agents - self.init_infected)
         )
+        # Array of age groups
+        adult_arr = np.array(["adult"] * self.n_adults)
+        elderly_arr = np.array(["elderly"] * self.n_elderly)
+        children_arr = np.array(["children"] * self.n_children)
+
+        # Concatentate age arrays
+        age_arr = np.concatenate((adult_arr, elderly_arr, children_arr))
+
+        # Shuffle arrays to randomize the initial agents
         np.random.shuffle(infected_arr)
+        np.random.shuffle(age_arr)
 
         for i in range(self.n_agents):
             a = Agent(i, self)
             self.schedule.add(a)
             a.infected = infected_arr[i]
+            a.age = age_arr[i]
 
             # Place agent on a random cell that is not occupied
             x = self.random.randrange(self.grid.width)
