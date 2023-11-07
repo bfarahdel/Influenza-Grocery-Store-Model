@@ -9,17 +9,17 @@ import random
 
 
 model_params = {
-    "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 30, 0, 100, 1),
-    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 30, 0, 100, 1),
-    "n_children": UserSettableParameter("number", "Children (Max. 100)", 30, 0, 100, 1),
+    "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 70, 0, 100, 1),
+    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 70, 0, 100, 1),
+    "n_children": UserSettableParameter("number", "Children (Max. 100)", 70, 0, 100, 1),
     "init_infected": UserSettableParameter(
-        "number", "Initial Infected (Max. 400)", 1, 0, 400, 1
+        "number", "Initial Infected (Max. 400)", 5, 0, 400, 1
     ),
     "transmission": UserSettableParameter(
-        "slider", "Transmission Probability", 0.75, 0, 1, 0.05
+        "slider", "Transmission Probability", 0.85, 0, 1, 0.05
     ),
     "infection_period": UserSettableParameter(
-        "slider", "Infection Period", 20, 0, 100, 1
+        "slider", "Infection Period", 25, 0, 100, 1
     ),
     "immunity_period": UserSettableParameter(
         "slider", "Immunity Period", 500, 0, 500, 10

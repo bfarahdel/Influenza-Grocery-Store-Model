@@ -29,8 +29,8 @@ def agent_portrayal(agent):
 
     if agent.infected == True:
         portrayal["Shape"] = "rect"
-        portrayal["w"] = 0.9
-        portrayal["h"] = 0.9
+        portrayal["w"] = 0.8
+        portrayal["h"] = 0.8
 
     if agent.immune == True:
         portrayal["Color"] = "green"
@@ -45,7 +45,7 @@ def agent_portrayal(agent):
     return portrayal
 
 
-grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
+grid = CanvasGrid(agent_portrayal, 50, 50, 700, 500)
 
 line_charts = ChartModule(
     [
