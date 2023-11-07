@@ -8,18 +8,20 @@ import random
 
 
 model_params = {
-    "n_agents": UserSettableParameter("number", "Total Population", 100, 5, 5000, 5),
+    "n_agents": UserSettableParameter(
+        "number", "Total Population (Max. 400)", 100, 0, 400, 1
+    ),
     "init_infected": UserSettableParameter(
-        "slider", "% initial infected", 0.2, 0, 1, 0.05
+        "number", "Initial Infected (Max. 400)", 2, 0, 400, 1
     ),
     "transmission": UserSettableParameter(
-        "slider", "Transmission probability", 0.75, 0, 1, 0.05
+        "slider", "Transmission Probability", 0.75, 0, 1, 0.05
     ),
     "infection_period": UserSettableParameter(
-        "slider", "Simulation steps to recover", 20, 5, 100, 5
+        "slider", "Infection Period", 20, 0, 100, 1
     ),
     "immunity_period": UserSettableParameter(
-        "slider", "Simulation steps before immunity is lost", 100, 10, 100, 10
+        "slider", "Immunity Period", 100, 0, 100, 10
     ),
     "width": 50,
     "height": 50,
@@ -139,8 +141,7 @@ class SIR(Model):
         ###############
         # Boolean array to represent if an agent is initially infected or not
         infected_arr = np.array(
-            [True] * int(self.n_agents * self.init_infected)
-            + [False] * int(self.n_agents * (1 - self.init_infected))
+            [True] * self.init_infected + [False] * (self.n_agents - self.init_infected)
         )
         np.random.shuffle(infected_arr)
 

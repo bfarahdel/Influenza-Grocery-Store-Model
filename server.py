@@ -39,4 +39,3 @@ line_charts = ChartModule(
 )
 
 server = ModularServer(SIR, [grid, line_charts], "SIR Model", model_params)
-server.launch()
