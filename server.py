@@ -7,13 +7,30 @@ def agent_portrayal(agent):
     portrayal = {
         "Shape": "circle",
         "Layer": 0,
-        "r": 1,
-        "Color": "mediumpurple",
+        "r": 0.4,
+        "Color": "purple",
         "Filled": "true",
     }
 
+    if agent.age == "adult":
+        portrayal["Shape"] = "circle"
+        portrayal["Color"] = "darkslateblue"
+        portrayal["r"] = 0.9
+
+    if agent.age == "elderly":
+        portrayal["Shape"] = "circle"
+        portrayal["Color"] = "orange"
+        portrayal["r"] = 0.7
+
+    if agent.age == "child":
+        portrayal["Shape"] = "circle"
+        portrayal["Color"] = "purple"
+        portrayal["r"] = 0.4
+
     if agent.infected == True:
-        portrayal["Color"] = "red"
+        portrayal["Shape"] = "rect"
+        portrayal["w"] = 0.9
+        portrayal["h"] = 0.9
 
     if agent.immune == True:
         portrayal["Color"] = "green"
