@@ -17,7 +17,7 @@ def agent_portrayal(agent):
         portrayal["Color"] = "darkslateblue"
         portrayal["r"] = 0.9
 
-    if agent.age == "elderly":
+    if agent.age == "elder":
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "orange"
         portrayal["r"] = 0.7
@@ -47,14 +47,25 @@ def agent_portrayal(agent):
 
 grid = CanvasGrid(agent_portrayal, 50, 50, 700, 500)
 
-line_charts = ChartModule(
+sir_curves = ChartModule(
     [
-        {"Label": "Susceptible", "Color": "mediumpurple"},
-        {"Label": "Infected", "Color": "red"},
-        {"Label": "Recovered", "Color": "green"},
+        {"Label": "Susceptible Adults", "Color": "blue"},
+        {"Label": "Susceptible Children", "Color": "purple"},
+        {"Label": "Susceptible Elderly", "Color": "orange"},
+        {"Label": "Infected Adults", "Color": "red"},
+        {"Label": "Infected Children", "Color": "pink"},
+        {"Label": "Infected Elderly", "Color": "brown"},
+        {"Label": "Recovered Adults", "Color": "green"},
+        {"Label": "Recovered Children", "Color": "lightgreen"},
+        {"Label": "Recovered Elderly", "Color": "lightblue"},
     ],
     canvas_height=190,
     canvas_width=500,
 )
 
-server = ModularServer(SIR, [grid, line_charts], "SIR Model", model_params)
+server = ModularServer(
+    SIR,
+    [grid, sir_curves],
+    "SIR Model of Influenza A/H1N1",
+    model_params,
+)

@@ -1,4 +1,3 @@
-import math
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
@@ -15,8 +14,35 @@ model_params = {
     "init_infected": UserSettableParameter(
         "number", "Initial Infected (Max. 400)", 5, 0, 400, 1
     ),
+    "contact_aa": UserSettableParameter(
+        "number", "Contact Rate (Adult-Adult)", 0.5, 0, 1, 0.1
+    ),
+    "contact_ac": UserSettableParameter(
+        "number", "Contact Rate (Adult-Child)", 0.5, 0, 1, 0.1
+    ),
+    "contact_ae": UserSettableParameter(
+        "number", "Contact Rate (Adult-Elder)", 0.5, 0, 1, 0.1
+    ),
+    "contact_cc": UserSettableParameter(
+        "number", "Contact Rate (Child-Child)", 0.8, 0, 1, 0.1
+    ),
+    "contact_ce": UserSettableParameter(
+        "number", "Contact Rate (Child-Elder)", 0.8, 0, 1, 0.1
+    ),
+    "contact_ca": UserSettableParameter(
+        "number", "Contact Rate (Child-Adult)", 0.8, 0, 1, 0.1
+    ),
+    "contact_ee": UserSettableParameter(
+        "number", "Contact Rate (Elder-Elder)", 0.3, 0, 1, 0.1
+    ),
+    "contact_ec": UserSettableParameter(
+        "number", "Contact Rate (Elder-Child)", 0.3, 0, 1, 0.1
+    ),
+    "contact_ea": UserSettableParameter(
+        "number", "Contact Rate (Elder-Adult)", 0.3, 0, 1, 0.1
+    ),
     "transmission": UserSettableParameter(
-        "slider", "Transmission Probability", 0.85, 0, 1, 0.05
+        "slider", "Transmission Probability", 0.6, 0, 1, 0.05
     ),
     "infection_period": UserSettableParameter(
         "slider", "Infection Period", 25, 0, 100, 1
@@ -36,6 +62,32 @@ class Agent(Agent):
         super().__init__(unique_id, model)
         self.type = "agent"
         self.age = None
+        self.contact_aa = self.model.contact_aa
+        self.contact_ac = self.model.contact_ac
+        self.contact_ae = self.model.contact_ae
+        self.contact_cc = self.model.contact_cc
+        self.contact_ce = self.model.contact_ce
+        self.contact_ca = self.model.contact_ca
+        self.contact_ee = self.model.contact_ee
+        self.contact_ec = self.model.contact_ec
+        self.contact_ea = self.model.contact_ea
+        self.contact_matrix = {
+            "adult": {
+                "adult": self.model.contact_aa,
+                "child": self.model.contact_ac,
+                "elder": self.model.contact_ae,
+            },
+            "child": {
+                "adult": self.model.contact_ca,
+                "child": self.model.contact_cc,
+                "elder": self.model.contact_ce,
+            },
+            "elder": {
+                "adult": self.model.contact_ea,
+                "child": self.model.contact_ec,
+                "elder": self.model.contact_ee,
+            },
+        }
         self.transmission = self.model.transmission
         self.infected = False
         self.immune = False
@@ -57,15 +109,23 @@ class Agent(Agent):
 
     def new_infected(self):
         # Infected or immune agents cannot become infected
-        if self.infected | self.immune:
+        if self.infected | self.immune | (self.type == "wall"):
             return None
         pos = tuple([int(self.pos[0]), int(self.pos[1])])
         # Checks if any of agents in the neighborhood with radius of 1 are infected
         neighbors = self.model.grid.get_neighbors(pos, moore=True, include_center=False)
-        infected_neighbors = [a.infected for a in neighbors]
+        contact_rate = 0
+        infection = False
+        for a in neighbors:
+            if a.infected:
+                infection = True
+                if self.contact_matrix[self.age][a.age] > contact_rate:
+                    contact_rate = self.contact_matrix[self.age][a.age]
+                    break
+
         # If any of the agents in the neighborhood are infected, the agent has a probability of getting infected
-        if True in infected_neighbors:
-            if random.random() < self.transmission:
+        if infection:
+            if random.random() < self.transmission * contact_rate:
                 self.infected = True
 
         # Once infected, consider recovery
@@ -113,6 +173,15 @@ class SIR(Model):
         width,
         height,
         init_infected,
+        contact_aa,
+        contact_ac,
+        contact_ae,
+        contact_cc,
+        contact_ce,
+        contact_ca,
+        contact_ee,
+        contact_ec,
+        contact_ea,
         transmission,
         infection_period,
         immunity_period,
@@ -123,6 +192,32 @@ class SIR(Model):
         self.n_agents = n_adults + n_elderly + n_children
         self.grid = SingleGrid(width, height, True)
         self.init_infected = init_infected
+        self.contact_aa = contact_aa
+        self.contact_ac = contact_ac
+        self.contact_ae = contact_ae
+        self.contact_cc = contact_cc
+        self.contact_ce = contact_ce
+        self.contact_ca = contact_ca
+        self.contact_ee = contact_ee
+        self.contact_ec = contact_ec
+        self.contact_ea = contact_ea
+        self.contact_matrix = {
+            "adult": {
+                "adult": self.contact_aa,
+                "child": self.contact_ac,
+                "elder": self.contact_ae,
+            },
+            "child": {
+                "adult": self.contact_ca,
+                "child": self.contact_cc,
+                "elder": self.contact_ce,
+            },
+            "elder": {
+                "adult": self.contact_ea,
+                "child": self.contact_ec,
+                "elder": self.contact_ee,
+            },
+        }
         self.transmission = transmission
         self.infection_period = infection_period
         self.immunity_period = immunity_period
@@ -152,11 +247,11 @@ class SIR(Model):
         )
         # Array of age groups
         adult_arr = np.array(["adult"] * self.n_adults)
-        elderly_arr = np.array(["elderly"] * self.n_elderly)
-        children_arr = np.array(["children"] * self.n_children)
+        elder_arr = np.array(["elder"] * self.n_elderly)
+        child_arr = np.array(["child"] * self.n_children)
 
         # Concatentate age arrays
-        age_arr = np.concatenate((adult_arr, elderly_arr, children_arr))
+        age_arr = np.concatenate((adult_arr, elder_arr, child_arr))
 
         # Shuffle arrays to randomize the initial agents
         np.random.shuffle(infected_arr)
@@ -178,28 +273,70 @@ class SIR(Model):
 
         self.datacollector = DataCollector(
             {
-                "Susceptible": "susceptible",
-                "Infected": "infected",
-                "Recovered": "immune",
+                "Susceptible Adults": "susceptible_adults",
+                "Susceptible Children": "susceptible_children",
+                "Susceptible Elderly": "susceptible_elderly",
+                "Infected Adults": "infected_adults",
+                "Infected Children": "infected_children",
+                "Infected Elderly": "infected_elderly",
+                "Recovered Adults": "immune_adults",
+                "Recovered Children": "immune_children",
+                "Recovered Elderly": "immune_elderly",
             }
         )
 
     @property
-    def susceptible(self):
+    def susceptible_adults(self):
         agents = self.schedule.agents
-        susceptible = [not (a.immune | a.infected) for a in agents if a.type != "wall"]
+        susceptible = [not (a.immune | a.infected) & (a.age == "adult") for a in agents]
         return int(np.sum(susceptible))
 
     @property
-    def infected(self):
+    def susceptible_children(self):
         agents = self.schedule.agents
-        infected = [a.infected for a in agents if a.type != "wall"]
+        susceptible = [not (a.immune | a.infected) & (a.age == "child") for a in agents]
+        return int(np.sum(susceptible))
+
+    @property
+    def susceptible_elderly(self):
+        agents = self.schedule.agents
+        susceptible = [not (a.immune | a.infected) & (a.age == "elder") for a in agents]
+        return int(np.sum(susceptible))
+
+    @property
+    def infected_adults(self):
+        agents = self.schedule.agents
+        infected = [a.infected & (a.age == "adult") for a in agents]
         return int(np.sum(infected))
 
     @property
-    def immune(self):
+    def infected_children(self):
         agents = self.schedule.agents
-        immune = [a.immune for a in agents if a.type != "wall"]
+        infected = [a.infected & (a.age == "child") for a in agents]
+        return int(np.sum(infected))
+
+    @property
+    def infected_elderly(self):
+        agents = self.schedule.agents
+        infected = [a.infected & (a.age == "elder") for a in agents]
+        return int(np.sum(infected))
+
+    @property
+    def immune_adults(self):
+        agents = self.schedule.agents
+        immune = [a.immune & (a.age == "adult") for a in agents]
+        return int(np.sum(immune))
+
+    @property
+    def immune_children(self):
+        agents = self.schedule.agents
+        immune = [a.immune & (a.age == "child") for a in agents]
+        return int(np.sum(immune))
+
+    @property
+    def immune_elderly(self):
+        agents = self.schedule.agents
+        immune = [a.immune & (a.age == "elder") for a in agents]
         return int(np.sum(immune))
 
     def step(self):
