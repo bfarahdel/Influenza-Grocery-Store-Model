@@ -45,7 +45,7 @@ def agent_portrayal(agent):
     return portrayal
 
 
-grid = CanvasGrid(agent_portrayal, 50, 50, 700, 500)
+grid = CanvasGrid(agent_portrayal, 50, 50, 862, 500)
 
 sir_curves = ChartModule(
     [

@@ -47,9 +47,6 @@ model_params = {
     "infection_period": UserSettableParameter(
         "slider", "Infection Period", 25, 0, 100, 1
     ),
-    "immunity_period": UserSettableParameter(
-        "slider", "Immunity Period", 500, 0, 500, 10
-    ),
     "width": 50,
     "height": 50,
 }
@@ -92,7 +89,6 @@ class Agent(Agent):
         self.infected = False
         self.immune = False
         self.recovery_steps = 0
-        self.immunity_steps = 0
         if self.infected:
             self.recovery_steps = self.model.infection_period
 
@@ -136,23 +132,13 @@ class Agent(Agent):
         if self.recovery_steps == 1:
             self.infected = False
             self.immune = True
-            # Following recovery, consider immunity period
-            self.immunity_steps = self.model.immunity_period
         if self.recovery_steps > 0:
             self.recovery_steps += -1
-
-    def new_susceptible(self):
-        # Following immunity, agent becomes susceptible
-        if self.immunity_steps == 1:
-            self.immune = False
-        if self.immunity_steps > 0:
-            self.immunity_steps = self.immunity_steps - 1
 
     def step(self):
         self.move()
         self.new_infected()
         self.new_recovered()
-        self.new_susceptible()
 
 
 class Wall(Agent):
@@ -184,7 +170,6 @@ class SIR(Model):
         contact_ea,
         transmission,
         infection_period,
-        immunity_period,
     ):
         self.n_adults = n_adults
         self.n_elderly = n_elderly
@@ -220,7 +205,6 @@ class SIR(Model):
         }
         self.transmission = transmission
         self.infection_period = infection_period
-        self.immunity_period = immunity_period
         self.schedule = RandomActivation(self)
         self.running = True
 
