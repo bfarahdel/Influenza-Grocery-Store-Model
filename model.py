@@ -14,6 +14,10 @@ model_params = {
     "init_infected": UserSettableParameter(
         "number", "Initial Infected (Max. 100)", 5, 0, 100, 1
     ),
+    "r0": UserSettableParameter("number", "R0", 1.6398, 0, 100, 0.1),
+    "infection_period": UserSettableParameter(
+        "number", "Infection Period", 4, 0, 100, 1
+    ),
     "v_adults": UserSettableParameter(
         "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
     ),
@@ -49,12 +53,6 @@ model_params = {
     ),
     "contact_ea": UserSettableParameter(
         "number", "Contact Rate (Elder-Adult)", 1, 0, 100, 1
-    ),
-    "transmission": UserSettableParameter(
-        "slider", "Transmission Probability", 0.7, 0, 1, 0.05
-    ),
-    "infection_period": UserSettableParameter(
-        "slider", "Infection Period", 25, 0, 100, 1
     ),
     "width": 50,
     "height": 50,
@@ -133,10 +131,7 @@ class Agent(Agent):
             for _ in range(contact_rate):
                 if random.random() < self.transmission * contact_rate:
                     self.infected = True
-
-        # Once infected, consider recovery based on infection period
-        if self.infected:
-            self.recovery_steps = self.model.infection_period
+                    self.recovery_steps = self.model.infection_period
 
     def new_recovered(self):
         if self.recovery_steps == 1:
@@ -166,6 +161,8 @@ class SIR(Model):
         n_adults,
         n_elderly,
         n_children,
+        infection_period,
+        r0,
         v_adults,
         v_elderly,
         v_children,
@@ -179,8 +176,6 @@ class SIR(Model):
         contact_ee,
         contact_ec,
         contact_ea,
-        transmission,
-        infection_period,
         width,
         height,
     ):
@@ -202,25 +197,37 @@ class SIR(Model):
         self.contact_ee = contact_ee
         self.contact_ec = contact_ec
         self.contact_ea = contact_ea
-        self.contact_matrix = {
-            "adult": {
-                "adult": self.contact_aa,
-                "child": self.contact_ac,
-                "elder": self.contact_ae,
+        self.contact_matrix = (
+            {
+                "adult": {
+                    "adult": self.contact_aa,
+                    "child": self.contact_ac,
+                    "elder": self.contact_ae,
+                },
+                "child": {
+                    "adult": self.contact_ca,
+                    "child": self.contact_cc,
+                    "elder": self.contact_ce,
+                },
+                "elder": {
+                    "adult": self.contact_ea,
+                    "child": self.contact_ec,
+                    "elder": self.contact_ee,
+                },
             },
-            "child": {
-                "adult": self.contact_ca,
-                "child": self.contact_cc,
-                "elder": self.contact_ce,
-            },
-            "elder": {
-                "adult": self.contact_ea,
-                "child": self.contact_ec,
-                "elder": self.contact_ee,
-            },
-        }
-        self.transmission = transmission
+        )
+        self.r0 = r0
         self.infection_period = infection_period
+        self.transmission = (self.r0) / (
+            self.infection_period
+            * (
+                self.n_agents
+                - self.init_infected
+                - self.v_adults
+                - self.v_elderly
+                - self.v_children
+            )
+        )
         self.schedule = RandomActivation(self)
         self.running = True
 
