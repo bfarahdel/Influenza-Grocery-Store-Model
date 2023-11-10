@@ -14,18 +14,21 @@ def agent_portrayal(agent):
 
     if agent.age == "adult":
         portrayal["Shape"] = "circle"
-        portrayal["Color"] = "darkslateblue"
+        portrayal["Color"] = "orange"
         portrayal["r"] = 0.9
 
     if agent.age == "elder":
         portrayal["Shape"] = "circle"
-        portrayal["Color"] = "orange"
+        portrayal["Color"] = "darkslateblue"
         portrayal["r"] = 0.7
 
     if agent.age == "child":
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "purple"
         portrayal["r"] = 0.4
+
+    if agent.vaccinated == True:
+        portrayal["Color"] = "#304ffe"
 
     if agent.infected == True:
         portrayal["Shape"] = "rect"
@@ -49,9 +52,9 @@ grid = CanvasGrid(agent_portrayal, 50, 50, 862, 500)
 
 sir_curves = ChartModule(
     [
-        {"Label": "Susceptible Adults", "Color": "blue"},
+        {"Label": "Susceptible Adults", "Color": "orange"},
         {"Label": "Susceptible Children", "Color": "purple"},
-        {"Label": "Susceptible Elderly", "Color": "orange"},
+        {"Label": "Susceptible Elderly", "Color": "darkslateblue"},
         {"Label": "Infected Adults", "Color": "red"},
         {"Label": "Infected Children", "Color": "pink"},
         {"Label": "Infected Elderly", "Color": "brown"},

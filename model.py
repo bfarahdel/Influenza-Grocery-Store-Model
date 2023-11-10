@@ -12,34 +12,43 @@ model_params = {
     "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 70, 0, 100, 1),
     "n_children": UserSettableParameter("number", "Children (Max. 100)", 70, 0, 100, 1),
     "init_infected": UserSettableParameter(
-        "number", "Initial Infected (Max. 400)", 5, 0, 400, 1
+        "number", "Initial Infected (Max. 100)", 5, 0, 100, 1
+    ),
+    "v_adults": UserSettableParameter(
+        "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
+    ),
+    "v_elderly": UserSettableParameter(
+        "number", "Vaccinated Elderly (Max. 100)", 0, 0, 100, 1
+    ),
+    "v_children": UserSettableParameter(
+        "number", "Vaccinated Children (Max. 100)", 0, 0, 100, 1
     ),
     "contact_aa": UserSettableParameter(
-        "number", "Contact Rate (Adult-Adult)", 5, 0, 1, 1
+        "number", "Contact Rate (Adult-Adult)", 5, 0, 100, 1
     ),
     "contact_ac": UserSettableParameter(
-        "number", "Contact Rate (Adult-Child)", 5, 0, 1, 1
+        "number", "Contact Rate (Adult-Child)", 5, 0, 100, 1
     ),
     "contact_ae": UserSettableParameter(
-        "number", "Contact Rate (Adult-Elder)", 5, 0, 1, 1
+        "number", "Contact Rate (Adult-Elder)", 5, 0, 100, 1
     ),
     "contact_cc": UserSettableParameter(
-        "number", "Contact Rate (Child-Child)", 10, 0, 1, 1
+        "number", "Contact Rate (Child-Child)", 10, 0, 100, 1
     ),
     "contact_ce": UserSettableParameter(
-        "number", "Contact Rate (Child-Elder)", 10, 0, 1, 1
+        "number", "Contact Rate (Child-Elder)", 10, 0, 100, 1
     ),
     "contact_ca": UserSettableParameter(
-        "number", "Contact Rate (Child-Adult)", 10, 0, 1, 1
+        "number", "Contact Rate (Child-Adult)", 10, 0, 100, 1
     ),
     "contact_ee": UserSettableParameter(
-        "number", "Contact Rate (Elder-Elder)", 1, 0, 1, 1
+        "number", "Contact Rate (Elder-Elder)", 1, 0, 100, 1
     ),
     "contact_ec": UserSettableParameter(
-        "number", "Contact Rate (Elder-Child)", 1, 0, 1, 1
+        "number", "Contact Rate (Elder-Child)", 1, 0, 100, 1
     ),
     "contact_ea": UserSettableParameter(
-        "number", "Contact Rate (Elder-Adult)", 1, 0, 1, 1
+        "number", "Contact Rate (Elder-Adult)", 1, 0, 100, 1
     ),
     "transmission": UserSettableParameter(
         "slider", "Transmission Probability", 0.7, 0, 1, 0.05
@@ -59,6 +68,7 @@ class Agent(Agent):
         super().__init__(unique_id, model)
         self.type = "agent"
         self.age = None
+        self.vaccinated = False
         self.contact_aa = self.model.contact_aa
         self.contact_ac = self.model.contact_ac
         self.contact_ae = self.model.contact_ae
@@ -104,8 +114,8 @@ class Agent(Agent):
             self.model.grid.move_agent(self, (new_x, new_y))
 
     def new_infected(self):
-        # Infected or immune agents cannot become infected
-        if self.infected | self.immune | (self.type == "wall"):
+        # Cases where agent cannot be infected
+        if self.infected | self.immune | self.vaccinated | (self.type == "wall"):
             return None
         pos = tuple([int(self.pos[0]), int(self.pos[1])])
         # Checks if any of agents in the neighborhood with radius of 1 are infected
@@ -156,8 +166,9 @@ class SIR(Model):
         n_adults,
         n_elderly,
         n_children,
-        width,
-        height,
+        v_adults,
+        v_elderly,
+        v_children,
         init_infected,
         contact_aa,
         contact_ac,
@@ -170,11 +181,16 @@ class SIR(Model):
         contact_ea,
         transmission,
         infection_period,
+        width,
+        height,
     ):
         self.n_adults = n_adults
         self.n_elderly = n_elderly
         self.n_children = n_children
         self.n_agents = n_adults + n_elderly + n_children
+        self.v_adults = v_adults
+        self.v_elderly = v_elderly
+        self.v_children = v_children
         self.grid = SingleGrid(width, height, True)
         self.init_infected = init_infected
         self.contact_aa = contact_aa
@@ -225,10 +241,6 @@ class SIR(Model):
         ###############
         # Create agents
         ###############
-        # Boolean array to represent if an agent is initially infected or not
-        infected_arr = np.array(
-            [True] * self.init_infected + [False] * (self.n_agents - self.init_infected)
-        )
         # Array of age groups
         adult_arr = np.array(["adult"] * self.n_adults)
         elder_arr = np.array(["elder"] * self.n_elderly)
@@ -237,15 +249,43 @@ class SIR(Model):
         # Concatentate age arrays
         age_arr = np.concatenate((adult_arr, elder_arr, child_arr))
 
-        # Shuffle arrays to randomize the initial agents
-        np.random.shuffle(infected_arr)
-        np.random.shuffle(age_arr)
+        # Boolean array to represent if an agent is initially vaccinated or not where infected_arr is False
+        vaccinated_adults = np.array(
+            [True] * self.v_adults + [False] * (self.n_adults - self.v_adults)
+        )
+        vaccinated_elderly = np.array(
+            [True] * self.v_elderly + [False] * (self.n_elderly - self.v_elderly)
+        )
+        vaccinated_children = np.array(
+            [True] * self.v_children + [False] * (self.n_children - self.v_children)
+        )
+
+        # Randomize initially vaccinated agents
+        np.random.shuffle(vaccinated_adults)
+        np.random.shuffle(vaccinated_elderly)
+        np.random.shuffle(vaccinated_children)
+
+        # Concatenate vaccinated arrays in the same order as age array
+        vaccinated_arr = np.concatenate(
+            (vaccinated_adults, vaccinated_elderly, vaccinated_children)
+        )
+
+        # Get indices where vaccinated_arr is False
+        unvaccinated_indices = np.where(vaccinated_arr == False)[0]
+        # Randomly select indices from unvaccinated_indices to infect
+        infected_indices = np.random.choice(
+            unvaccinated_indices, size=self.init_infected, replace=False
+        )
+        # Boolean array to represent if an agent is initially infected or not
+        infected_arr = np.array([False] * self.n_agents)
+        infected_arr[infected_indices] = True
 
         for i in range(self.n_agents):
             a = Agent(i, self)
             self.schedule.add(a)
             a.infected = infected_arr[i]
             a.age = age_arr[i]
+            a.vaccinated = vaccinated_arr[i]
 
             # Place agent on a random cell that is not occupied
             x = self.random.randrange(self.grid.width)
