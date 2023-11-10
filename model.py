@@ -15,34 +15,34 @@ model_params = {
         "number", "Initial Infected (Max. 400)", 5, 0, 400, 1
     ),
     "contact_aa": UserSettableParameter(
-        "number", "Contact Rate (Adult-Adult)", 0.5, 0, 1, 0.1
+        "number", "Contact Rate (Adult-Adult)", 5, 0, 1, 1
     ),
     "contact_ac": UserSettableParameter(
-        "number", "Contact Rate (Adult-Child)", 0.5, 0, 1, 0.1
+        "number", "Contact Rate (Adult-Child)", 5, 0, 1, 1
     ),
     "contact_ae": UserSettableParameter(
-        "number", "Contact Rate (Adult-Elder)", 0.5, 0, 1, 0.1
+        "number", "Contact Rate (Adult-Elder)", 5, 0, 1, 1
     ),
     "contact_cc": UserSettableParameter(
-        "number", "Contact Rate (Child-Child)", 0.8, 0, 1, 0.1
+        "number", "Contact Rate (Child-Child)", 10, 0, 1, 1
     ),
     "contact_ce": UserSettableParameter(
-        "number", "Contact Rate (Child-Elder)", 0.8, 0, 1, 0.1
+        "number", "Contact Rate (Child-Elder)", 10, 0, 1, 1
     ),
     "contact_ca": UserSettableParameter(
-        "number", "Contact Rate (Child-Adult)", 0.8, 0, 1, 0.1
+        "number", "Contact Rate (Child-Adult)", 10, 0, 1, 1
     ),
     "contact_ee": UserSettableParameter(
-        "number", "Contact Rate (Elder-Elder)", 0.3, 0, 1, 0.1
+        "number", "Contact Rate (Elder-Elder)", 1, 0, 1, 1
     ),
     "contact_ec": UserSettableParameter(
-        "number", "Contact Rate (Elder-Child)", 0.3, 0, 1, 0.1
+        "number", "Contact Rate (Elder-Child)", 1, 0, 1, 1
     ),
     "contact_ea": UserSettableParameter(
-        "number", "Contact Rate (Elder-Adult)", 0.3, 0, 1, 0.1
+        "number", "Contact Rate (Elder-Adult)", 1, 0, 1, 1
     ),
     "transmission": UserSettableParameter(
-        "slider", "Transmission Probability", 0.6, 0, 1, 0.05
+        "slider", "Transmission Probability", 0.7, 0, 1, 0.05
     ),
     "infection_period": UserSettableParameter(
         "slider", "Infection Period", 25, 0, 100, 1
@@ -117,14 +117,14 @@ class Agent(Agent):
                 infection = True
                 if self.contact_matrix[self.age][a.age] > contact_rate:
                     contact_rate = self.contact_matrix[self.age][a.age]
-                    break
 
         # If any of the agents in the neighborhood are infected, the agent has a probability of getting infected
         if infection:
-            if random.random() < self.transmission * contact_rate:
-                self.infected = True
+            for _ in range(contact_rate):
+                if random.random() < self.transmission * contact_rate:
+                    self.infected = True
 
-        # Once infected, consider recovery
+        # Once infected, consider recovery based on infection period
         if self.infected:
             self.recovery_steps = self.model.infection_period
 
