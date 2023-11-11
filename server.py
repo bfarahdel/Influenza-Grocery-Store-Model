@@ -52,6 +52,9 @@ grid = CanvasGrid(agent_portrayal, 50, 50, 862, 500)
 
 sir_curves = ChartModule(
     [
+        {"Label": "Total Susceptible", "Color": "turquoise"},
+        {"Label": "Total Infected", "Color": "firebrick"},
+        {"Label": "Total Recovered", "Color": "forestgreen"},
         {"Label": "Susceptible Adults", "Color": "orange"},
         {"Label": "Susceptible Children", "Color": "purple"},
         {"Label": "Susceptible Elderly", "Color": "darkslateblue"},

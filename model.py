@@ -16,7 +16,7 @@ model_params = {
     ),
     "r0": UserSettableParameter("number", "R0", 1.6398, 0, 100, 0.1),
     "infection_period": UserSettableParameter(
-        "number", "Infection Period", 4, 0, 100, 1
+        "slider", "Infection Period", 4, 0, 50, 1
     ),
     "v_adults": UserSettableParameter(
         "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
@@ -28,31 +28,31 @@ model_params = {
         "number", "Vaccinated Children (Max. 100)", 0, 0, 100, 1
     ),
     "contact_aa": UserSettableParameter(
-        "number", "Contact Rate (Adult-Adult)", 5, 0, 100, 1
+        "number", "Contact Rate (Adult-Adult)", 10, 0, 100, 1
     ),
     "contact_ac": UserSettableParameter(
-        "number", "Contact Rate (Adult-Child)", 5, 0, 100, 1
+        "number", "Contact Rate (Adult-Child)", 3, 0, 100, 1
     ),
     "contact_ae": UserSettableParameter(
-        "number", "Contact Rate (Adult-Elder)", 5, 0, 100, 1
+        "number", "Contact Rate (Adult-Elder)", 1, 0, 100, 1
     ),
     "contact_cc": UserSettableParameter(
-        "number", "Contact Rate (Child-Child)", 10, 0, 100, 1
+        "number", "Contact Rate (Child-Child)", 6, 0, 100, 1
     ),
     "contact_ce": UserSettableParameter(
-        "number", "Contact Rate (Child-Elder)", 10, 0, 100, 1
+        "number", "Contact Rate (Child-Elder)", 1, 0, 100, 1
     ),
     "contact_ca": UserSettableParameter(
-        "number", "Contact Rate (Child-Adult)", 10, 0, 100, 1
+        "number", "Contact Rate (Child-Adult)", 6, 0, 100, 1
     ),
     "contact_ee": UserSettableParameter(
-        "number", "Contact Rate (Elder-Elder)", 1, 0, 100, 1
+        "number", "Contact Rate (Elder-Elder)", 2, 0, 100, 1
     ),
     "contact_ec": UserSettableParameter(
         "number", "Contact Rate (Elder-Child)", 1, 0, 100, 1
     ),
     "contact_ea": UserSettableParameter(
-        "number", "Contact Rate (Elder-Adult)", 1, 0, 100, 1
+        "number", "Contact Rate (Elder-Adult)", 5, 0, 100, 1
     ),
     "width": 50,
     "height": 50,
@@ -304,6 +304,9 @@ class SIR(Model):
 
         self.datacollector = DataCollector(
             {
+                "Total Susceptible": "total_susceptible",
+                "Total Infected": "total_infected",
+                "Total Recovered": "total_immune",
                 "Susceptible Adults": "susceptible_adults",
                 "Susceptible Children": "susceptible_children",
                 "Susceptible Elderly": "susceptible_elderly",
@@ -369,6 +372,22 @@ class SIR(Model):
         agents = self.schedule.agents
         immune = [a.immune & (a.age == "elder") for a in agents]
         return int(np.sum(immune))
+
+    @property
+    def total_susceptible(self):
+        return (
+            self.susceptible_adults
+            + self.susceptible_children
+            + self.susceptible_elderly
+        )
+
+    @property
+    def total_infected(self):
+        return self.infected_adults + self.infected_children + self.infected_elderly
+
+    @property
+    def total_immune(self):
+        return self.immune_adults + self.immune_children + self.immune_elderly
 
     def step(self):
         self.datacollector.collect(self)
