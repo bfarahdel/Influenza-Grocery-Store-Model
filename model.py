@@ -233,10 +233,14 @@ class SIR(Model):
 
         # 4 walls that run from (10,10) to (10,40), (20, 10) to (20,40), (30, 10) to (30,40), (40, 10) to (40,40)
         walls = (
-            [(10, y) for y in range(10, 41)]
-            + [(20, y) for y in range(10, 41)]
-            + [(30, y) for y in range(10, 41)]
-            + [(40, y) for y in range(10, 41)]
+            [(10, y) for y in range(10, 23)]
+            + [(10, y) for y in range(28, 41)]
+            + [(20, y) for y in range(10, 23)]
+            + [(20, y) for y in range(28, 41)]
+            + [(30, y) for y in range(10, 23)]
+            + [(30, y) for y in range(28, 41)]
+            + [(40, y) for y in range(10, 23)]
+            + [(40, y) for y in range(28, 41)]
         )
 
         for pos in walls:
