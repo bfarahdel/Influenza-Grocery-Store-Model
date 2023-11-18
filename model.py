@@ -14,9 +14,11 @@ model_params = {
     "init_infected": UserSettableParameter(
         "number", "Initial Infected (Max. 100)", 5, 0, 100, 1
     ),
-    "r0": UserSettableParameter("number", "R0", 1.6398, 0, 100, 0.1),
+    "transmission": UserSettableParameter(
+        "number", "Transmission Probability", 0.03, 0, 1, 0.01
+    ),
     "infection_period": UserSettableParameter(
-        "slider", "Infection Period", 4, 0, 50, 1
+        "slider", "Infection Period", 15, 0, 50, 1
     ),
     "v_adults": UserSettableParameter(
         "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
@@ -128,10 +130,9 @@ class Agent(Agent):
 
         # If any of the agents in the neighborhood are infected, the agent has a probability of getting infected
         if infection:
-            for _ in range(contact_rate):
-                if random.random() < self.transmission * contact_rate:
-                    self.infected = True
-                    self.recovery_steps = self.model.infection_period
+            if random.random() < self.transmission * contact_rate:
+                self.infected = True
+                self.recovery_steps = self.model.infection_period
 
     def new_recovered(self):
         if self.recovery_steps == 1:
@@ -162,7 +163,7 @@ class SIR(Model):
         n_elderly,
         n_children,
         infection_period,
-        r0,
+        transmission,
         v_adults,
         v_elderly,
         v_children,
@@ -216,22 +217,12 @@ class SIR(Model):
                 },
             },
         )
-        self.r0 = r0
         self.infection_period = infection_period
-        self.transmission = (self.r0) / (
-            self.infection_period
-            * (
-                self.n_agents
-                - self.init_infected
-                - self.v_adults
-                - self.v_elderly
-                - self.v_children
-            )
-        )
+        self.transmission = transmission
         self.schedule = RandomActivation(self)
         self.running = True
 
-        # 4 walls that run from (10,10) to (10,40), (20, 10) to (20,40), (30, 10) to (30,40), (40, 10) to (40,40)
+        # Create aisles
         walls = (
             [(10, y) for y in range(10, 23)]
             + [(10, y) for y in range(28, 41)]
@@ -326,19 +317,49 @@ class SIR(Model):
     @property
     def susceptible_adults(self):
         agents = self.schedule.agents
-        susceptible = [not (a.immune | a.infected) & (a.age == "adult") for a in agents]
+        susceptible = [
+            not (
+                a.immune
+                | a.infected
+                | (a.type == "wall")
+                | a.vaccinated
+                | (a.age == "child")
+                | (a.age == "elder")
+            )
+            for a in agents
+        ]
         return int(np.sum(susceptible))
 
     @property
     def susceptible_children(self):
         agents = self.schedule.agents
-        susceptible = [not (a.immune | a.infected) & (a.age == "child") for a in agents]
+        susceptible = [
+            not (
+                a.immune
+                | a.infected
+                | (a.type == "wall")
+                | a.vaccinated
+                | (a.age == "adult")
+                | (a.age == "elder")
+            )
+            for a in agents
+        ]
         return int(np.sum(susceptible))
 
     @property
     def susceptible_elderly(self):
         agents = self.schedule.agents
-        susceptible = [not (a.immune | a.infected) & (a.age == "elder") for a in agents]
+        susceptible = [
+            not (
+                a.immune
+                | a.infected
+                | (a.type == "wall")
+                | a.vaccinated
+                | (a.age == "child")
+                | (a.age == "adult")
+            )
+            for a in agents
+        ]
         return int(np.sum(susceptible))
 
     @property
