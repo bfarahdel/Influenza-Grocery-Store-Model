@@ -12,20 +12,25 @@ def agent_portrayal(agent):
         "Filled": "true",
     }
 
-    if agent.age == "adult":
+    if agent.strata == "adult":
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "orange"
         portrayal["r"] = 0.9
 
-    if agent.age == "elder":
+    if agent.strata == "elder":
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "darkslateblue"
         portrayal["r"] = 0.7
 
-    if agent.age == "child":
+    if agent.strata == "child":
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "purple"
         portrayal["r"] = 0.4
+
+    if agent.strata == "pregnant":
+        portrayal["Shape"] = "circle"
+        portrayal["Color"] = "hotpink"
+        portrayal["r"] = 0.8
 
     if agent.vaccinated == True:
         portrayal["Color"] = "#304ffe"
@@ -62,9 +67,10 @@ totals = ChartModule(
 
 infected = ChartModule(
     [
-        {"Label": "Infected Adults", "Color": "red"},
-        {"Label": "Infected Children", "Color": "pink"},
-        {"Label": "Infected Elderly", "Color": "brown"},
+        {"Label": "Infected Adults", "Color": "orange"},
+        {"Label": "Infected Children", "Color": "purple"},
+        {"Label": "Infected Elderly", "Color": "darkslateblue"},
+        {"Label": "Infected Pregnant", "Color": "hotpink"},
     ]
 )
 
@@ -98,9 +104,19 @@ elderly = ChartModule(
     canvas_width=500,
 )
 
+pregnant = ChartModule(
+    [
+        {"Label": "Susceptible Pregnant", "Color": "hotpink"},
+        {"Label": "Infected Pregnant", "Color": "red"},
+        {"Label": "Recovered Pregnant", "Color": "lightgreen"},
+    ],
+    canvas_height=190,
+    canvas_width=500,
+)
+
 server = ModularServer(
     SIR,
-    [grid, totals, infected, adults, children, elderly],
+    [grid, totals, infected, adults, children, elderly, pregnant],
     "SIR Model of Influenza A/H1N1",
     model_params,
 )

@@ -9,8 +9,9 @@ import random
 
 model_params = {
     "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 70, 0, 100, 1),
-    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 70, 0, 100, 1),
     "n_children": UserSettableParameter("number", "Children (Max. 100)", 70, 0, 100, 1),
+    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 70, 0, 100, 1),
+    "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 20, 0, 100, 1),
     "init_infected": UserSettableParameter(
         "number", "Initial Infected (Max. 100)", 5, 0, 100, 1
     ),
@@ -23,11 +24,26 @@ model_params = {
     "v_adults": UserSettableParameter(
         "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
     ),
+    "v_children": UserSettableParameter(
+        "number", "Vaccinated Children (Max. 100)", 0, 0, 100, 1
+    ),
     "v_elderly": UserSettableParameter(
         "number", "Vaccinated Elderly (Max. 100)", 0, 0, 100, 1
     ),
-    "v_children": UserSettableParameter(
-        "number", "Vaccinated Children (Max. 100)", 0, 0, 100, 1
+    "v_pregnant": UserSettableParameter(
+        "number", "Vaccinated Pregnant (Max. 100)", 0, 0, 100, 1
+    ),
+    "fatal_adults": UserSettableParameter(
+        "number", "Fatalities in Adults (%)", 0.02, 0, 100, 0.1
+    ),
+    "fatal_children": UserSettableParameter(
+        "number", "Fatalities in Children (%)", 0.002, 0, 100, 0.1
+    ),
+    "fatal_elderly": UserSettableParameter(
+        "number", "Fatalities in Elderly (%)", 0.009, 0, 100, 0.1
+    ),
+    "fatal_pregnant": UserSettableParameter(
+        "number", "Fatalities in Pregnant (%)", 6, 0, 100, 0.1
     ),
     "contact_aa": UserSettableParameter(
         "number", "Contact Rate (Adult-Adult)", 10, 0, 100, 1
@@ -67,7 +83,7 @@ class Agent(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.type = "agent"
-        self.age = None
+        self.strata = None
         self.vaccinated = False
         self.contact_aa = self.model.contact_aa
         self.contact_ac = self.model.contact_ac
@@ -78,23 +94,7 @@ class Agent(Agent):
         self.contact_ee = self.model.contact_ee
         self.contact_ec = self.model.contact_ec
         self.contact_ea = self.model.contact_ea
-        self.contact_matrix = {
-            "adult": {
-                "adult": self.model.contact_aa,
-                "child": self.model.contact_ac,
-                "elder": self.model.contact_ae,
-            },
-            "child": {
-                "adult": self.model.contact_ca,
-                "child": self.model.contact_cc,
-                "elder": self.model.contact_ce,
-            },
-            "elder": {
-                "adult": self.model.contact_ea,
-                "child": self.model.contact_ec,
-                "elder": self.model.contact_ee,
-            },
-        }
+        self.contact_matrix = self.model.contact_matrix
         self.transmission = self.model.transmission
         self.infected = False
         self.immune = False
@@ -125,8 +125,8 @@ class Agent(Agent):
         for a in neighbors:
             if a.infected:
                 infection = True
-                if self.contact_matrix[self.age][a.age] > contact_rate:
-                    contact_rate = self.contact_matrix[self.age][a.age]
+                if self.contact_matrix[self.strata][a.strata] > contact_rate:
+                    contact_rate = self.contact_matrix[self.strata][a.strata]
 
         # If any of the agents in the neighborhood are infected, the agent has a probability of getting infected
         if infection:
@@ -162,12 +162,18 @@ class SIR(Model):
         n_adults,
         n_elderly,
         n_children,
+        n_pregnant,
         infection_period,
         transmission,
         v_adults,
         v_elderly,
         v_children,
+        v_pregnant,
         init_infected,
+        fatal_adults,
+        fatal_children,
+        fatal_elderly,
+        fatal_pregnant,
         contact_aa,
         contact_ac,
         contact_ae,
@@ -183,12 +189,18 @@ class SIR(Model):
         self.n_adults = n_adults
         self.n_elderly = n_elderly
         self.n_children = n_children
-        self.n_agents = n_adults + n_elderly + n_children
+        self.n_pregnant = n_pregnant
+        self.n_agents = n_adults + n_elderly + n_children + n_pregnant
         self.v_adults = v_adults
         self.v_elderly = v_elderly
         self.v_children = v_children
+        self.v_pregnant = v_pregnant
         self.grid = SingleGrid(width, height, True)
         self.init_infected = init_infected
+        self.fatal_adults = fatal_adults
+        self.fatal_children = fatal_children
+        self.fatal_elderly = fatal_elderly
+        self.fatal_pregnant = fatal_pregnant
         self.contact_aa = contact_aa
         self.contact_ac = contact_ac
         self.contact_ae = contact_ae
@@ -198,25 +210,32 @@ class SIR(Model):
         self.contact_ee = contact_ee
         self.contact_ec = contact_ec
         self.contact_ea = contact_ea
-        self.contact_matrix = (
-            {
-                "adult": {
-                    "adult": self.contact_aa,
-                    "child": self.contact_ac,
-                    "elder": self.contact_ae,
-                },
-                "child": {
-                    "adult": self.contact_ca,
-                    "child": self.contact_cc,
-                    "elder": self.contact_ce,
-                },
-                "elder": {
-                    "adult": self.contact_ea,
-                    "child": self.contact_ec,
-                    "elder": self.contact_ee,
-                },
+        self.contact_matrix = {
+            "adult": {
+                "adult": self.contact_aa,
+                "child": self.contact_ac,
+                "elder": self.contact_ae,
+                "pregnant": self.contact_aa,
             },
-        )
+            "child": {
+                "adult": self.contact_ca,
+                "child": self.contact_cc,
+                "elder": self.contact_ce,
+                "pregnant": self.contact_ca,
+            },
+            "elder": {
+                "adult": self.contact_ea,
+                "child": self.contact_ec,
+                "elder": self.contact_ee,
+                "pregnant": self.contact_ea,
+            },
+            "pregnant": {
+                "adult": self.contact_aa,
+                "child": self.contact_ac,
+                "elder": self.contact_ae,
+                "pregnant": self.contact_aa,
+            },
+        }
         self.infection_period = infection_period
         self.transmission = transmission
         self.schedule = RandomActivation(self)
@@ -243,13 +262,14 @@ class SIR(Model):
         ###############
         # Create agents
         ###############
-        # Array of age groups
+        # Array of population strata
         adult_arr = np.array(["adult"] * self.n_adults)
         elder_arr = np.array(["elder"] * self.n_elderly)
         child_arr = np.array(["child"] * self.n_children)
+        pregnant_arr = np.array(["pregnant"] * self.n_pregnant)
 
-        # Concatentate age arrays
-        age_arr = np.concatenate((adult_arr, elder_arr, child_arr))
+        # Concatentate strata arrays
+        strata_arr = np.concatenate((adult_arr, elder_arr, child_arr, pregnant_arr))
 
         # Boolean array to represent if an agent is initially vaccinated or not where infected_arr is False
         vaccinated_adults = np.array(
@@ -261,15 +281,24 @@ class SIR(Model):
         vaccinated_children = np.array(
             [True] * self.v_children + [False] * (self.n_children - self.v_children)
         )
+        vaccinated_pregnant = np.array(
+            [True] * self.v_pregnant + [False] * (self.n_pregnant - self.v_pregnant)
+        )
 
         # Randomize initially vaccinated agents
         np.random.shuffle(vaccinated_adults)
         np.random.shuffle(vaccinated_elderly)
         np.random.shuffle(vaccinated_children)
+        np.random.shuffle(vaccinated_pregnant)
 
         # Concatenate vaccinated arrays in the same order as age array
         vaccinated_arr = np.concatenate(
-            (vaccinated_adults, vaccinated_elderly, vaccinated_children)
+            (
+                vaccinated_adults,
+                vaccinated_elderly,
+                vaccinated_children,
+                vaccinated_pregnant,
+            )
         )
 
         # Get indices where vaccinated_arr is False
@@ -286,7 +315,7 @@ class SIR(Model):
             a = Agent(i, self)
             self.schedule.add(a)
             a.infected = infected_arr[i]
-            a.age = age_arr[i]
+            a.strata = strata_arr[i]
             a.vaccinated = vaccinated_arr[i]
 
             # Place agent on a random cell that is not occupied
@@ -311,6 +340,9 @@ class SIR(Model):
                 "Recovered Adults": "immune_adults",
                 "Recovered Children": "immune_children",
                 "Recovered Elderly": "immune_elderly",
+                "Susceptible Pregnant": "susceptible_pregnant",
+                "Infected Pregnant": "infected_pregnant",
+                "Recovered Pregnant": "immune_pregnant",
             }
         )
 
@@ -323,8 +355,9 @@ class SIR(Model):
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
-                | (a.age == "child")
-                | (a.age == "elder")
+                | (a.strata == "child")
+                | (a.strata == "elder")
+                | (a.strata == "pregnant")
             )
             for a in agents
         ]
@@ -339,8 +372,9 @@ class SIR(Model):
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
-                | (a.age == "adult")
-                | (a.age == "elder")
+                | (a.strata == "adult")
+                | (a.strata == "elder")
+                | (a.strata == "pregnant")
             )
             for a in agents
         ]
@@ -355,8 +389,26 @@ class SIR(Model):
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
-                | (a.age == "child")
-                | (a.age == "adult")
+                | (a.strata == "child")
+                | (a.strata == "adult")
+                | (a.strata == "pregnant")
+            )
+            for a in agents
+        ]
+        return int(np.sum(susceptible))
+
+    @property
+    def susceptible_pregnant(self):
+        agents = self.schedule.agents
+        susceptible = [
+            not (
+                a.immune
+                | a.infected
+                | (a.type == "wall")
+                | a.vaccinated
+                | (a.strata == "child")
+                | (a.strata == "adult")
+                | (a.strata == "elder")
             )
             for a in agents
         ]
@@ -365,37 +417,49 @@ class SIR(Model):
     @property
     def infected_adults(self):
         agents = self.schedule.agents
-        infected = [a.infected & (a.age == "adult") for a in agents]
+        infected = [a.infected & (a.strata == "adult") for a in agents]
         return int(np.sum(infected))
 
     @property
     def infected_children(self):
         agents = self.schedule.agents
-        infected = [a.infected & (a.age == "child") for a in agents]
+        infected = [a.infected & (a.strata == "child") for a in agents]
         return int(np.sum(infected))
 
     @property
     def infected_elderly(self):
         agents = self.schedule.agents
-        infected = [a.infected & (a.age == "elder") for a in agents]
+        infected = [a.infected & (a.strata == "elder") for a in agents]
+        return int(np.sum(infected))
+
+    @property
+    def infected_pregnant(self):
+        agents = self.schedule.agents
+        infected = [a.infected & (a.strata == "pregnant") for a in agents]
         return int(np.sum(infected))
 
     @property
     def immune_adults(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.age == "adult") for a in agents]
+        immune = [a.immune & (a.strata == "adult") for a in agents]
         return int(np.sum(immune))
 
     @property
     def immune_children(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.age == "child") for a in agents]
+        immune = [a.immune & (a.strata == "child") for a in agents]
         return int(np.sum(immune))
 
     @property
     def immune_elderly(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.age == "elder") for a in agents]
+        immune = [a.immune & (a.strata == "elder") for a in agents]
+        return int(np.sum(immune))
+
+    @property
+    def immune_pregnant(self):
+        agents = self.schedule.agents
+        immune = [a.immune & (a.strata == "pregnant") for a in agents]
         return int(np.sum(immune))
 
     @property
@@ -404,15 +468,26 @@ class SIR(Model):
             self.susceptible_adults
             + self.susceptible_children
             + self.susceptible_elderly
+            + self.susceptible_pregnant
         )
 
     @property
     def total_infected(self):
-        return self.infected_adults + self.infected_children + self.infected_elderly
+        return (
+            self.infected_adults
+            + self.infected_children
+            + self.infected_elderly
+            + self.infected_pregnant
+        )
 
     @property
     def total_immune(self):
-        return self.immune_adults + self.immune_children + self.immune_elderly
+        return (
+            self.immune_adults
+            + self.immune_children
+            + self.immune_elderly
+            + self.immune_pregnant
+        )
 
     def step(self):
         self.datacollector.collect(self)
