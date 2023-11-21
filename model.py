@@ -191,7 +191,10 @@ class Wall(Agent):
 
 
 class SIR(Model):
-    """An SIR (Susceptible, Infected, Removed) Agent-based model"""
+    """
+    This is an age-structured SIR (Susceptible, Infected, Removed) Agent-based model of influenza A/H1N1 in an artificial Grocery Store.
+    First, set the parameters on the left panel. If any of the parameters were changed, click the "Reset" button. Otherwise, click the "Start" button.
+    """
 
     def __init__(
         self,
