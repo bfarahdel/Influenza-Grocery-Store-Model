@@ -11,7 +11,7 @@ model_params = {
     "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 70, 0, 100, 1),
     "n_children": UserSettableParameter("number", "Children (Max. 100)", 70, 0, 100, 1),
     "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 70, 0, 100, 1),
-    "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 20, 0, 100, 1),
+    "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 30, 0, 100, 1),
     "init_infected": UserSettableParameter(
         "number", "Initial Infected (Max. 100)", 5, 0, 100, 1
     ),
@@ -98,24 +98,60 @@ class Agent(Agent):
         self.transmission = self.model.transmission
         self.infected = False
         self.immune = False
-        self.recovery_steps = 0
+        self.dead = False
         if self.infected:
             self.recovery_steps = self.model.infection_period
+        else:
+            self.recovery_steps = 0
 
     def move(self):
         if self.type != "wall":
-            # Move agent to a random cell in the radius of 1, if there is no empty cell, agent stays in place
-            possible_steps = self.model.grid.get_neighborhood(
-                self.pos, moore=True, include_center=False
-            )
-            new_x, new_y = self.random.choice(possible_steps)
-            while self.model.grid.is_cell_empty((new_x, new_y)) == False:
+            if not self.dead:
+                # Move agent to a random cell in the radius of 1, if there is no empty cell, agent stays in place
+                possible_steps = self.model.grid.get_neighborhood(
+                    self.pos, moore=True, include_center=False
+                )
                 new_x, new_y = self.random.choice(possible_steps)
-            self.model.grid.move_agent(self, (new_x, new_y))
+                while self.model.grid.is_cell_empty((new_x, new_y)) == False:
+                    new_x, new_y = self.random.choice(possible_steps)
+                self.model.grid.move_agent(self, (new_x, new_y))
 
     def new_infected(self):
-        # Cases where agent cannot be infected
-        if self.infected | self.immune | self.vaccinated | (self.type == "wall"):
+        # Fatality rate
+        if self.infected:
+            if self.strata == "adult":
+                if random.random() < self.model.fatal_adults / 100:
+                    self.dead = True
+                    self.infected = False
+                    self.recovery_steps = 0
+                    self.model.grid.remove_agent(self)
+            if self.strata == "child":
+                if random.random() < self.model.fatal_children / 100:
+                    self.dead = True
+                    self.infected = False
+                    self.recovery_steps = 0
+                    self.model.grid.remove_agent(self)
+            if self.strata == "elder":
+                if random.random() < self.model.fatal_elderly / 100:
+                    self.dead = True
+                    self.infected = False
+                    self.recovery_steps = 0
+                    self.model.grid.remove_agent(self)
+            if self.strata == "pregnant":
+                if random.random() < self.model.fatal_pregnant / 100:
+                    self.dead = True
+                    self.infected = False
+                    self.recovery_steps = 0
+                    self.model.grid.remove_agent(self)
+
+        # Cases when the agent cannot be infected
+        if (
+            self.infected
+            | self.immune
+            | self.vaccinated
+            | self.dead
+            | (self.type == "wall")
+        ):
             return None
         pos = tuple([int(self.pos[0]), int(self.pos[1])])
         # Checks if any of agents in the neighborhood with radius of 1 are infected
@@ -331,6 +367,7 @@ class SIR(Model):
                 "Total Susceptible": "total_susceptible",
                 "Total Infected": "total_infected",
                 "Total Recovered": "total_immune",
+                "Total Dead": "total_dead",
                 "Susceptible Adults": "susceptible_adults",
                 "Susceptible Children": "susceptible_children",
                 "Susceptible Elderly": "susceptible_elderly",
@@ -343,6 +380,10 @@ class SIR(Model):
                 "Susceptible Pregnant": "susceptible_pregnant",
                 "Infected Pregnant": "infected_pregnant",
                 "Recovered Pregnant": "immune_pregnant",
+                "Dead Adults": "dead_adults",
+                "Dead Children": "dead_children",
+                "Dead Elderly": "dead_elderly",
+                "Dead Pregnant": "dead_pregnant",
             }
         )
 
@@ -463,6 +504,30 @@ class SIR(Model):
         return int(np.sum(immune))
 
     @property
+    def dead_adults(self):
+        agents = self.schedule.agents
+        dead = [a.dead & (a.strata == "adult") for a in agents]
+        return int(np.sum(dead))
+
+    @property
+    def dead_children(self):
+        agents = self.schedule.agents
+        dead = [a.dead & (a.strata == "child") for a in agents]
+        return int(np.sum(dead))
+
+    @property
+    def dead_elderly(self):
+        agents = self.schedule.agents
+        dead = [a.dead & (a.strata == "elder") for a in agents]
+        return int(np.sum(dead))
+
+    @property
+    def dead_pregnant(self):
+        agents = self.schedule.agents
+        dead = [a.dead & (a.strata == "pregnant") for a in agents]
+        return int(np.sum(dead))
+
+    @property
     def total_susceptible(self):
         return (
             self.susceptible_adults
@@ -487,6 +552,15 @@ class SIR(Model):
             + self.immune_children
             + self.immune_elderly
             + self.immune_pregnant
+        )
+
+    @property
+    def total_dead(self):
+        return (
+            self.dead_adults
+            + self.dead_children
+            + self.dead_elderly
+            + self.dead_pregnant
         )
 
     def step(self):

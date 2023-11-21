@@ -15,7 +15,7 @@ def agent_portrayal(agent):
     if agent.strata == "adult":
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "orange"
-        portrayal["r"] = 0.9
+        portrayal["r"] = 1
 
     if agent.strata == "elder":
         portrayal["Shape"] = "circle"
@@ -60,6 +60,7 @@ totals = ChartModule(
         {"Label": "Total Susceptible", "Color": "turquoise"},
         {"Label": "Total Infected", "Color": "firebrick"},
         {"Label": "Total Recovered", "Color": "forestgreen"},
+        {"Label": "Total Dead", "Color": "black"},
     ],
     canvas_height=190,
     canvas_width=500,
@@ -74,11 +75,21 @@ infected = ChartModule(
     ]
 )
 
+deaths = ChartModule(
+    [
+        {"Label": "Dead Adults", "Color": "orange"},
+        {"Label": "Dead Children", "Color": "purple"},
+        {"Label": "Dead Elderly", "Color": "darkslateblue"},
+        {"Label": "Dead Pregnant", "Color": "hotpink"},
+    ]
+)
+
 adults = ChartModule(
     [
         {"Label": "Susceptible Adults", "Color": "orange"},
         {"Label": "Infected Adults", "Color": "red"},
         {"Label": "Recovered Adults", "Color": "green"},
+        {"Label": "Dead Adults", "Color": "black"},
     ],
     canvas_height=190,
     canvas_width=500,
@@ -89,6 +100,7 @@ children = ChartModule(
         {"Label": "Susceptible Children", "Color": "purple"},
         {"Label": "Infected Children", "Color": "pink"},
         {"Label": "Recovered Children", "Color": "lightgreen"},
+        {"Label": "Dead Children", "Color": "black"},
     ],
     canvas_height=190,
     canvas_width=500,
@@ -99,6 +111,7 @@ elderly = ChartModule(
         {"Label": "Susceptible Elderly", "Color": "darkslateblue"},
         {"Label": "Infected Elderly", "Color": "brown"},
         {"Label": "Recovered Elderly", "Color": "lightblue"},
+        {"Label": "Dead Elderly", "Color": "black"},
     ],
     canvas_height=190,
     canvas_width=500,
@@ -109,6 +122,7 @@ pregnant = ChartModule(
         {"Label": "Susceptible Pregnant", "Color": "hotpink"},
         {"Label": "Infected Pregnant", "Color": "red"},
         {"Label": "Recovered Pregnant", "Color": "lightgreen"},
+        {"Label": "Dead Pregnant", "Color": "black"},
     ],
     canvas_height=190,
     canvas_width=500,
@@ -116,7 +130,7 @@ pregnant = ChartModule(
 
 server = ModularServer(
     SIR,
-    [grid, totals, infected, adults, children, elderly, pregnant],
+    [grid, totals, infected, deaths, adults, children, elderly, pregnant],
     "SIR Model of Influenza A/H1N1",
     model_params,
 )
