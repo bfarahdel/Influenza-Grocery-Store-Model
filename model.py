@@ -18,7 +18,7 @@ model_params = {
         "number", "Transmission Probability", 0.03, 0, 1, 0.01
     ),
     "infection_period": UserSettableParameter(
-        "slider", "Infection Period", 15, 0, 50, 1
+        "slider", "Infection Period", 10, 0, 50, 1
     ),
     "v_adults": UserSettableParameter(
         "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1

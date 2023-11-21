@@ -50,19 +50,48 @@ def agent_portrayal(agent):
 
 grid = CanvasGrid(agent_portrayal, 50, 50, 862, 500)
 
-sir_curves = ChartModule(
+totals = ChartModule(
     [
         {"Label": "Total Susceptible", "Color": "turquoise"},
         {"Label": "Total Infected", "Color": "firebrick"},
         {"Label": "Total Recovered", "Color": "forestgreen"},
-        {"Label": "Susceptible Adults", "Color": "orange"},
-        {"Label": "Susceptible Children", "Color": "purple"},
-        {"Label": "Susceptible Elderly", "Color": "darkslateblue"},
+    ],
+    canvas_height=190,
+    canvas_width=500,
+)
+
+infected = ChartModule(
+    [
         {"Label": "Infected Adults", "Color": "red"},
         {"Label": "Infected Children", "Color": "pink"},
         {"Label": "Infected Elderly", "Color": "brown"},
+    ]
+)
+
+adults = ChartModule(
+    [
+        {"Label": "Susceptible Adults", "Color": "orange"},
+        {"Label": "Infected Adults", "Color": "red"},
         {"Label": "Recovered Adults", "Color": "green"},
+    ],
+    canvas_height=190,
+    canvas_width=500,
+)
+
+children = ChartModule(
+    [
+        {"Label": "Susceptible Children", "Color": "purple"},
+        {"Label": "Infected Children", "Color": "pink"},
         {"Label": "Recovered Children", "Color": "lightgreen"},
+    ],
+    canvas_height=190,
+    canvas_width=500,
+)
+
+elderly = ChartModule(
+    [
+        {"Label": "Susceptible Elderly", "Color": "darkslateblue"},
+        {"Label": "Infected Elderly", "Color": "brown"},
         {"Label": "Recovered Elderly", "Color": "lightblue"},
     ],
     canvas_height=190,
@@ -71,7 +100,7 @@ sir_curves = ChartModule(
 
 server = ModularServer(
     SIR,
-    [grid, sir_curves],
+    [grid, totals, infected, adults, children, elderly],
     "SIR Model of Influenza A/H1N1",
     model_params,
 )
