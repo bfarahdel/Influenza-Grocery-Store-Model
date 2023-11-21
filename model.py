@@ -97,7 +97,7 @@ class Agent(Agent):
         self.contact_matrix = self.model.contact_matrix
         self.transmission = self.model.transmission
         self.infected = False
-        self.immune = False
+        self.recovered = False
         self.dead = False
         if self.infected:
             self.recovery_steps = self.model.infection_period
@@ -147,7 +147,7 @@ class Agent(Agent):
         # Cases when the agent cannot be infected
         if (
             self.infected
-            | self.immune
+            | self.recovered
             | self.vaccinated
             | self.dead
             | (self.type == "wall")
@@ -173,7 +173,7 @@ class Agent(Agent):
     def new_recovered(self):
         if self.recovery_steps == 1:
             self.infected = False
-            self.immune = True
+            self.recovered = True
         if self.recovery_steps > 0:
             self.recovery_steps += -1
 
@@ -366,7 +366,7 @@ class SIR(Model):
             {
                 "Total Susceptible": "total_susceptible",
                 "Total Infected": "total_infected",
-                "Total Recovered": "total_immune",
+                "Total Recovered": "total_recovered",
                 "Total Dead": "total_dead",
                 "Susceptible Adults": "susceptible_adults",
                 "Susceptible Children": "susceptible_children",
@@ -374,12 +374,12 @@ class SIR(Model):
                 "Infected Adults": "infected_adults",
                 "Infected Children": "infected_children",
                 "Infected Elderly": "infected_elderly",
-                "Recovered Adults": "immune_adults",
-                "Recovered Children": "immune_children",
-                "Recovered Elderly": "immune_elderly",
+                "Recovered Adults": "recovered_adults",
+                "Recovered Children": "recovered_children",
+                "Recovered Elderly": "recovered_elderly",
                 "Susceptible Pregnant": "susceptible_pregnant",
                 "Infected Pregnant": "infected_pregnant",
-                "Recovered Pregnant": "immune_pregnant",
+                "Recovered Pregnant": "recovered_pregnant",
                 "Dead Adults": "dead_adults",
                 "Dead Children": "dead_children",
                 "Dead Elderly": "dead_elderly",
@@ -392,7 +392,7 @@ class SIR(Model):
         agents = self.schedule.agents
         susceptible = [
             not (
-                a.immune
+                a.recovered
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
@@ -409,7 +409,7 @@ class SIR(Model):
         agents = self.schedule.agents
         susceptible = [
             not (
-                a.immune
+                a.recovered
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
@@ -426,7 +426,7 @@ class SIR(Model):
         agents = self.schedule.agents
         susceptible = [
             not (
-                a.immune
+                a.recovered
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
@@ -443,7 +443,7 @@ class SIR(Model):
         agents = self.schedule.agents
         susceptible = [
             not (
-                a.immune
+                a.recovered
                 | a.infected
                 | (a.type == "wall")
                 | a.vaccinated
@@ -480,28 +480,28 @@ class SIR(Model):
         return int(np.sum(infected))
 
     @property
-    def immune_adults(self):
+    def recovered_adults(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.strata == "adult") for a in agents]
-        return int(np.sum(immune))
+        recovered = [a.recovered & (a.strata == "adult") for a in agents]
+        return int(np.sum(recovered))
 
     @property
-    def immune_children(self):
+    def recovered_children(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.strata == "child") for a in agents]
-        return int(np.sum(immune))
+        recovered = [a.recovered & (a.strata == "child") for a in agents]
+        return int(np.sum(recovered))
 
     @property
-    def immune_elderly(self):
+    def recovered_elderly(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.strata == "elder") for a in agents]
-        return int(np.sum(immune))
+        recovered = [a.recovered & (a.strata == "elder") for a in agents]
+        return int(np.sum(recovered))
 
     @property
-    def immune_pregnant(self):
+    def recovered_pregnant(self):
         agents = self.schedule.agents
-        immune = [a.immune & (a.strata == "pregnant") for a in agents]
-        return int(np.sum(immune))
+        recovered = [a.recovered & (a.strata == "pregnant") for a in agents]
+        return int(np.sum(recovered))
 
     @property
     def dead_adults(self):
@@ -546,12 +546,12 @@ class SIR(Model):
         )
 
     @property
-    def total_immune(self):
+    def total_recovered(self):
         return (
-            self.immune_adults
-            + self.immune_children
-            + self.immune_elderly
-            + self.immune_pregnant
+            self.recovered_adults
+            + self.recovered_children
+            + self.recovered_elderly
+            + self.recovered_pregnant
         )
 
     @property

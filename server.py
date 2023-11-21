@@ -40,7 +40,7 @@ def agent_portrayal(agent):
         portrayal["w"] = 0.8
         portrayal["h"] = 0.8
 
-    if agent.immune == True:
+    if agent.recovered == True:
         portrayal["Color"] = "green"
 
     if agent.type == "wall":
