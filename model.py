@@ -34,16 +34,16 @@ model_params = {
         "number", "Vaccinated Pregnant (Max. 100)", 0, 0, 100, 1
     ),
     "fatal_adults": UserSettableParameter(
-        "number", "Fatalities in Adults (%)", 0.02, 0, 100, 0.1
+        "number", "Fatality Risk in Adults (%)", 0.02, 0, 100, 0.1
     ),
     "fatal_children": UserSettableParameter(
-        "number", "Fatalities in Children (%)", 0.002, 0, 100, 0.1
+        "number", "Fatality Risk in Children (%)", 0.002, 0, 100, 0.1
     ),
     "fatal_elderly": UserSettableParameter(
-        "number", "Fatalities in Elderly (%)", 0.009, 0, 100, 0.1
+        "number", "Fatality Risk in Elderly (%)", 0.009, 0, 100, 0.1
     ),
     "fatal_pregnant": UserSettableParameter(
-        "number", "Fatalities in Pregnant (%)", 6, 0, 100, 0.1
+        "number", "Fatality Risk in Pregnant (%)", 6, 0, 100, 0.1
     ),
     "contact_aa": UserSettableParameter(
         "number", "Contact Rate (Adult-Adult)", 10, 0, 100, 1
