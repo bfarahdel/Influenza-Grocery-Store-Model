@@ -84,7 +84,6 @@ class Agent(Agent):
         super().__init__(unique_id, model)
         self.type = "agent"
         self.strata = None
-        self.vaccinated = False
         self.contact_aa = self.model.contact_aa
         self.contact_ac = self.model.contact_ac
         self.contact_ae = self.model.contact_ae
@@ -145,13 +144,7 @@ class Agent(Agent):
                     self.model.grid.remove_agent(self)
 
         # Cases when the agent cannot be infected
-        if (
-            self.infected
-            | self.recovered
-            | self.vaccinated
-            | self.dead
-            | (self.type == "wall")
-        ):
+        if self.infected | self.recovered | self.dead | (self.type == "wall"):
             return None
         pos = tuple([int(self.pos[0]), int(self.pos[1])])
         # Checks if any of agents in the neighborhood with radius of 1 are infected
@@ -355,7 +348,7 @@ class SIR(Model):
             self.schedule.add(a)
             a.infected = infected_arr[i]
             a.strata = strata_arr[i]
-            a.vaccinated = vaccinated_arr[i]
+            a.recovered = vaccinated_arr[i]
 
             # Place agent on a random cell that is not occupied
             x = self.random.randrange(self.grid.width)
@@ -398,7 +391,6 @@ class SIR(Model):
                 a.recovered
                 | a.infected
                 | (a.type == "wall")
-                | a.vaccinated
                 | (a.strata == "child")
                 | (a.strata == "elder")
                 | (a.strata == "pregnant")
@@ -415,7 +407,6 @@ class SIR(Model):
                 a.recovered
                 | a.infected
                 | (a.type == "wall")
-                | a.vaccinated
                 | (a.strata == "adult")
                 | (a.strata == "elder")
                 | (a.strata == "pregnant")
@@ -432,7 +423,6 @@ class SIR(Model):
                 a.recovered
                 | a.infected
                 | (a.type == "wall")
-                | a.vaccinated
                 | (a.strata == "child")
                 | (a.strata == "adult")
                 | (a.strata == "pregnant")
@@ -449,7 +439,6 @@ class SIR(Model):
                 a.recovered
                 | a.infected
                 | (a.type == "wall")
-                | a.vaccinated
                 | (a.strata == "child")
                 | (a.strata == "adult")
                 | (a.strata == "elder")

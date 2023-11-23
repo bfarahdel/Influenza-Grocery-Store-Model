@@ -32,15 +32,12 @@ def agent_portrayal(agent):
         portrayal["Color"] = "hotpink"
         portrayal["r"] = 0.8
 
-    if agent.vaccinated == True:
-        portrayal["Color"] = "#304ffe"
-
-    if agent.infected == True:
+    if agent.infected:
         portrayal["Shape"] = "rect"
         portrayal["w"] = 0.8
         portrayal["h"] = 0.8
 
-    if agent.recovered == True:
+    if agent.recovered:
         portrayal["Color"] = "green"
 
     if agent.type == "wall":
