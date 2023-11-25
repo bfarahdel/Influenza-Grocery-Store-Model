@@ -386,65 +386,57 @@ class SIR(Model):
     @property
     def susceptible_adults(self):
         agents = self.schedule.agents
-        susceptible = [
-            not (
-                a.recovered
-                | a.infected
-                | (a.type == "wall")
-                | (a.strata == "child")
-                | (a.strata == "elder")
-                | (a.strata == "pregnant")
-            )
-            for a in agents
-        ]
+        susceptible = []
+        for a in agents:
+            if a.strata == "adult":
+                # If other strata has a population of 0
+                if a.recovered == 0.0:
+                    a.recovered = False
+                # If agent is not recovered, infected, or a wall
+                if not (a.recovered | a.infected | (a.type == "wall")):
+                    susceptible.append(True)
         return int(np.sum(susceptible))
 
     @property
     def susceptible_children(self):
         agents = self.schedule.agents
-        susceptible = [
-            not (
-                a.recovered
-                | a.infected
-                | (a.type == "wall")
-                | (a.strata == "adult")
-                | (a.strata == "elder")
-                | (a.strata == "pregnant")
-            )
-            for a in agents
-        ]
+        susceptible = []
+        for a in agents:
+            if a.strata == "child":
+                # If other strata has a population of 0
+                if a.recovered == 0.0:
+                    a.recovered = False
+                # If agent is not recovered, infected, or a wall
+                if not (a.recovered | a.infected | (a.type == "wall")):
+                    susceptible.append(True)
         return int(np.sum(susceptible))
 
     @property
     def susceptible_elderly(self):
         agents = self.schedule.agents
-        susceptible = [
-            not (
-                a.recovered
-                | a.infected
-                | (a.type == "wall")
-                | (a.strata == "child")
-                | (a.strata == "adult")
-                | (a.strata == "pregnant")
-            )
-            for a in agents
-        ]
+        susceptible = []
+        for a in agents:
+            if a.strata == "elder":
+                # If other strata has a population of 0
+                if a.recovered == 0.0:
+                    a.recovered = False
+                # If agent is not recovered, infected, or a wall
+                if not (a.recovered | a.infected | (a.type == "wall")):
+                    susceptible.append(True)
         return int(np.sum(susceptible))
 
     @property
     def susceptible_pregnant(self):
         agents = self.schedule.agents
-        susceptible = [
-            not (
-                a.recovered
-                | a.infected
-                | (a.type == "wall")
-                | (a.strata == "child")
-                | (a.strata == "adult")
-                | (a.strata == "elder")
-            )
-            for a in agents
-        ]
+        susceptible = []
+        for a in agents:
+            if a.strata == "pregnant":
+                # If other strata has a population of 0
+                if a.recovered == 0.0:
+                    a.recovered = False
+                # If agent is not recovered, infected, or a wall
+                if not (a.recovered | a.infected | (a.type == "wall")):
+                    susceptible.append(True)
         return int(np.sum(susceptible))
 
     @property
