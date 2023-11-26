@@ -8,12 +8,12 @@ import random
 
 
 model_params = {
-    "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 70, 0, 100, 1),
-    "n_children": UserSettableParameter("number", "Children (Max. 100)", 70, 0, 100, 1),
-    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 70, 0, 100, 1),
-    "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 30, 0, 100, 1),
+    "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 25, 0, 100, 1),
+    "n_children": UserSettableParameter("number", "Children (Max. 100)", 25, 0, 100, 1),
+    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 25, 0, 100, 1),
+    "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 25, 0, 100, 1),
     "init_infected": UserSettableParameter(
-        "number", "Initial Infected (Max. 100)", 5, 0, 100, 1
+        "number", "Initial Infected (Max. 100)", 10, 0, 100, 1
     ),
     "transmission": UserSettableParameter(
         "number", "Transmission Probability", 0.03, 0, 1, 0.01
