@@ -14,7 +14,7 @@ git clone https://github.com/bfarahdel/Influenza-Grocery-Store-Model.git
 
 The application can be run locally with a Python virtual environment or deployed as a web
 
-## Python Virtual Environment
+## Python Virtual Environment (Recommended)
 
 1. Install [virtualenv](https://virtualenv.pypa.io/en/latest/)
 
