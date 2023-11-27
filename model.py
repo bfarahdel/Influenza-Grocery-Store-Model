@@ -12,8 +12,17 @@ model_params = {
     "n_children": UserSettableParameter("number", "Children (Max. 100)", 20, 0, 100, 1),
     "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 20, 0, 100, 1),
     "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 20, 0, 100, 1),
-    "init_infected": UserSettableParameter(
-        "number", "Initial Infected (Max. 100)", 20, 0, 100, 1
+    "infect_adults": UserSettableParameter(
+        "number", "Initial Infected Adults (Max. 100)", 5, 0, 100, 1
+    ),
+    "infect_children": UserSettableParameter(
+        "number", "Initial Infected Children (Max. 100)", 5, 0, 100, 1
+    ),
+    "infect_elderly": UserSettableParameter(
+        "number", "Initial Infected Elderly (Max. 100)", 5, 0, 100, 1
+    ),
+    "infect_pregnant": UserSettableParameter(
+        "number", "Initial Infected Pregnant (Max. 100)", 5, 0, 100, 1
     ),
     "transmission": UserSettableParameter(
         "number", "Transmission Probability", 0.03, 0, 1, 0.01
@@ -137,7 +146,8 @@ class Agent(Agent):
                     self.recovery_steps = 0
                     self.model.grid.remove_agent(self)
             if self.strata == "pregnant":
-                if random.random() < self.model.fatal_pregnant / 100:
+                preg_rand = random.random()
+                if preg_rand < self.model.fatal_pregnant / 100:
                     self.dead = True
                     self.infected = False
                     self.recovery_steps = 0
@@ -164,11 +174,12 @@ class Agent(Agent):
                 self.recovery_steps = self.model.infection_period
 
     def new_recovered(self):
-        if self.recovery_steps == 1:
-            self.infected = False
-            self.recovered = True
-        if self.recovery_steps > 0:
-            self.recovery_steps += -1
+        if self.type != "wall":
+            if self.recovery_steps == 1:
+                self.infected = False
+                self.recovered = True
+            if self.recovery_steps > 0:
+                self.recovery_steps += -1
 
     def step(self):
         self.move()
@@ -201,7 +212,10 @@ class SIR(Model):
         v_elderly,
         v_children,
         v_pregnant,
-        init_infected,
+        infect_adults,
+        infect_children,
+        infect_elderly,
+        infect_pregnant,
         fatal_adults,
         fatal_children,
         fatal_elderly,
@@ -228,7 +242,10 @@ class SIR(Model):
         self.v_children = v_children
         self.v_pregnant = v_pregnant
         self.grid = SingleGrid(width, height, True)
-        self.init_infected = init_infected
+        self.infect_adults = infect_adults
+        self.infect_children = infect_children
+        self.infect_elderly = infect_elderly
+        self.infect_pregnant = infect_pregnant
         self.fatal_adults = fatal_adults
         self.fatal_children = fatal_children
         self.fatal_elderly = fatal_elderly
@@ -333,20 +350,54 @@ class SIR(Model):
             )
         )
 
-        # Get indices where vaccinated_arr is False
-        unvaccinated_indices = np.where(vaccinated_arr == False)[0]
-        # Randomly select indices from unvaccinated_indices to infect
-        infected_indices = np.random.choice(
-            unvaccinated_indices, size=self.init_infected, replace=False
+        # Initially infect each strata
+        unvaccinated_adults = np.where(vaccinated_adults == False)[0]
+        unvaccinated_elderly = np.where(vaccinated_elderly == False)[0]
+        unvaccinated_children = np.where(vaccinated_children == False)[0]
+        unvaccinated_pregnant = np.where(vaccinated_pregnant == False)[0]
+
+        # Randomly infect agents
+        init_inf_adults = np.random.choice(
+            unvaccinated_adults, size=self.infect_adults, replace=False
         )
-        # Boolean array to represent if an agent is initially infected or not
-        infected_arr = np.array([False] * self.n_agents)
-        infected_arr[infected_indices] = True
+        init_inf_elderly = np.random.choice(
+            unvaccinated_elderly, size=self.infect_elderly, replace=False
+        )
+        init_inf_children = np.random.choice(
+            unvaccinated_children, size=self.infect_children, replace=False
+        )
+        init_inf_pregnant = np.random.choice(
+            unvaccinated_pregnant, size=self.infect_pregnant, replace=False
+        )
+
+        # Boolean arrays to represent if an agent is initially infected or not
+        infected_adults_arr = np.array([False] * self.n_adults)
+        infected_elderly_arr = np.array([False] * self.n_elderly)
+        infected_children_arr = np.array([False] * self.n_children)
+        infected_pregnant_arr = np.array([False] * self.n_pregnant)
+
+        # Set infected agents to True
+        infected_adults_arr[init_inf_adults] = True
+        infected_elderly_arr[init_inf_elderly] = True
+        infected_children_arr[init_inf_children] = True
+        infected_pregnant_arr[init_inf_pregnant] = True
+
+        # Concatenate infected arrays in the same order as age array
+        infected_arr = np.concatenate(
+            (
+                infected_adults_arr,
+                infected_elderly_arr,
+                infected_children_arr,
+                infected_pregnant_arr,
+            )
+        )
 
         for i in range(self.n_agents):
             a = Agent(i, self)
             self.schedule.add(a)
             a.infected = infected_arr[i]
+            if a.infected:
+                a.recovery_steps = self.infection_period
             a.strata = strata_arr[i]
             a.recovered = vaccinated_arr[i]
 
@@ -389,11 +440,8 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "adult":
-                # If other strata has a population of 0
-                if a.recovered == 0.0:
-                    a.recovered = False
                 # If agent is not recovered, infected, or a wall
-                if not (a.recovered | a.infected | (a.type == "wall")):
+                if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
         return int(np.sum(susceptible))
 
@@ -403,11 +451,8 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "child":
-                # If other strata has a population of 0
-                if a.recovered == 0.0:
-                    a.recovered = False
                 # If agent is not recovered, infected, or a wall
-                if not (a.recovered | a.infected | (a.type == "wall")):
+                if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
         return int(np.sum(susceptible))
 
@@ -417,11 +462,8 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "elder":
-                # If other strata has a population of 0
-                if a.recovered == 0.0:
-                    a.recovered = False
                 # If agent is not recovered, infected, or a wall
-                if not (a.recovered | a.infected | (a.type == "wall")):
+                if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
         return int(np.sum(susceptible))
 
@@ -431,11 +473,8 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "pregnant":
-                # If other strata has a population of 0
-                if a.recovered == 0.0:
-                    a.recovered = False
                 # If agent is not recovered, infected, or a wall
-                if not (a.recovered | a.infected | (a.type == "wall")):
+                if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
         return int(np.sum(susceptible))
 
