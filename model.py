@@ -8,40 +8,29 @@ import random
 
 
 model_params = {
-    "n_adults": UserSettableParameter("number", "Adults (Max. 100)", 20, 0, 100, 1),
-    "n_children": UserSettableParameter("number", "Children (Max. 100)", 20, 0, 100, 1),
-    "n_elderly": UserSettableParameter("number", "Elderly (Max. 100)", 20, 0, 100, 1),
-    "n_pregnant": UserSettableParameter("number", "Pregnant (Max. 100)", 20, 0, 100, 1),
+    "n_adults": UserSettableParameter("slider", "Adults", 28, 0, 100, 1),
+    "n_children": UserSettableParameter("slider", "Children", 28, 0, 100, 1),
+    "n_elderly": UserSettableParameter("slider", "Elderly", 28, 0, 100, 1),
+    "n_pregnant": UserSettableParameter("slider", "Pregnant", 28, 0, 100, 1),
     "infect_adults": UserSettableParameter(
-        "number", "Initial Infected Adults (Max. 100)", 5, 0, 100, 1
+        "number", "Initial Infected Adults", 7, 0, 100, 1
     ),
     "infect_children": UserSettableParameter(
-        "number", "Initial Infected Children (Max. 100)", 5, 0, 100, 1
+        "number", "Initial Infected Children", 7, 0, 100, 1
     ),
     "infect_elderly": UserSettableParameter(
-        "number", "Initial Infected Elderly (Max. 100)", 5, 0, 100, 1
+        "number", "Initial Infected Elderly", 7, 0, 100, 1
     ),
     "infect_pregnant": UserSettableParameter(
-        "number", "Initial Infected Pregnant (Max. 100)", 5, 0, 100, 1
-    ),
-    "transmission": UserSettableParameter(
-        "number", "Transmission Probability", 0.03, 0, 1, 0.01
+        "number", "Initial Infected Pregnant", 7, 0, 100, 1
     ),
     "infection_period": UserSettableParameter(
-        "slider", "Infection Period", 15, 0, 50, 1
+        "slider", "Infection Period", 20, 0, 100, 1
     ),
-    "v_adults": UserSettableParameter(
-        "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
-    ),
-    "v_children": UserSettableParameter(
-        "number", "Vaccinated Children (Max. 100)", 0, 0, 100, 1
-    ),
-    "v_elderly": UserSettableParameter(
-        "number", "Vaccinated Elderly (Max. 100)", 0, 0, 100, 1
-    ),
-    "v_pregnant": UserSettableParameter(
-        "number", "Vaccinated Pregnant (Max. 100)", 0, 0, 100, 1
-    ),
+    "v_adults": UserSettableParameter("number", "Vaccinated Adults", 0, 0, 100, 1),
+    "v_children": UserSettableParameter("number", "Vaccinated Children", 0, 0, 100, 1),
+    "v_elderly": UserSettableParameter("number", "Vaccinated Elderly", 0, 0, 100, 1),
+    "v_pregnant": UserSettableParameter("number", "Vaccinated Pregnant", 0, 0, 100, 1),
     "fatal_adults": UserSettableParameter(
         "number", "Fatality Risk in Adults (%)", 0.02, 0, 100, 0.1
     ),
@@ -53,6 +42,9 @@ model_params = {
     ),
     "fatal_pregnant": UserSettableParameter(
         "number", "Fatality Risk in Pregnant (%)", 6, 0, 100, 0.1
+    ),
+    "transmission": UserSettableParameter(
+        "number", "Transmission Probability", 0.03, 0, 1, 0.01
     ),
     "contact_aa": UserSettableParameter(
         "number", "Contact Rate (Adult-Adult)", 10, 0, 100, 1

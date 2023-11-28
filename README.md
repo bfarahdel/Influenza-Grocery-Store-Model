@@ -50,8 +50,7 @@ python3 run.py
 
 ## Deploy as a Web Service
 
-A deployment platform such as [Render](https://render.com/) can be used to host the web application with [Gunicorn](https://gunicorn.org/).
-When deploying as a web service on Render, the following build command can be used for Gunicorn: `gunicorn run`.
+The python application can be deployed as a web service with the provided requirements.txt file and/or the Procfile for [Heroku](https://www.heroku.com/).
 
 # Instructions
 
