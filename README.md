@@ -4,6 +4,8 @@
 
 This is an age-structured SIR (Susceptible, Infected, Removed) Agent-based model of influenza A/H1N1 in an artificial Grocery Store.
 
+![demo](/docs/demo.png)
+
 # Installation
 
 ## Clone the GitHub Repository
@@ -53,6 +55,8 @@ When deploying as a web service on Render, the following build command can be us
 
 # Instructions
 
-1. Set the parameters on the left panel.
+1. Set the parameters on the left panel. Each population strata is represented below.
+   <br>
+   ![legend](/docs/legend.png)
 2. If any of the parameters were changed, click the "Reset" button. Otherwise, continue to step 3.
 3. Click the "Start" button.

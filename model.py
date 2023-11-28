@@ -28,7 +28,7 @@ model_params = {
         "number", "Transmission Probability", 0.03, 0, 1, 0.01
     ),
     "infection_period": UserSettableParameter(
-        "slider", "Infection Period", 10, 0, 50, 1
+        "slider", "Infection Period", 15, 0, 50, 1
     ),
     "v_adults": UserSettableParameter(
         "number", "Vaccinated Adults (Max. 100)", 0, 0, 100, 1
@@ -440,6 +440,19 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "adult":
+                # If other strata has a population of 0
+                if a.recovered == 1.0:
+                    a.recovered = True
+                else:
+                    a.recovered = False
+                if a.infected == 1.0:
+                    a.infected = True
+                else:
+                    a.infected = False
+                if a.dead == 1.0:
+                    a.dead = True
+                else:
+                    a.dead = False
                 # If agent is not recovered, infected, or a wall
                 if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
@@ -451,6 +464,19 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "child":
+                # If other strata has a population of 0
+                if a.recovered == 1.0:
+                    a.recovered = True
+                else:
+                    a.recovered = False
+                if a.infected == 1.0:
+                    a.infected = True
+                else:
+                    a.infected = False
+                if a.dead == 1.0:
+                    a.dead = True
+                else:
+                    a.dead = False
                 # If agent is not recovered, infected, or a wall
                 if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
@@ -462,6 +488,19 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "elder":
+                # If other strata has a population of 0
+                if a.recovered == 1.0:
+                    a.recovered = True
+                else:
+                    a.recovered = False
+                if a.infected == 1.0:
+                    a.infected = True
+                else:
+                    a.infected = False
+                if a.dead == 1.0:
+                    a.dead = True
+                else:
+                    a.dead = False
                 # If agent is not recovered, infected, or a wall
                 if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
@@ -473,6 +512,19 @@ class SIR(Model):
         susceptible = []
         for a in agents:
             if a.strata == "pregnant":
+                # If other strata has a population of 0
+                if a.recovered == 1.0:
+                    a.recovered = True
+                else:
+                    a.recovered = False
+                if a.infected == 1.0:
+                    a.infected = True
+                else:
+                    a.infected = False
+                if a.dead == 1.0:
+                    a.dead = True
+                else:
+                    a.dead = False
                 # If agent is not recovered, infected, or a wall
                 if not (a.recovered | a.infected | a.dead | (a.type == "wall")):
                     susceptible.append(True)
