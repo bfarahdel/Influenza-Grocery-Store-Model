@@ -111,6 +111,7 @@ class Agent(Agent):
             self.recovery_steps = self.model.infection_period
         else:
             self.recovery_steps = 0
+        self.fatality = self.model.fatality
 
     def move(self):
         if self.type != "wall":
@@ -128,30 +129,45 @@ class Agent(Agent):
         # Fatality rate
         if self.infected:
             if self.strata == "adult":
-                if random.random() < self.model.fatal_adults / 100:
+                if self.fatality == None:
+                    self.fatality = random.random() < self.model.fatal_adults / 100
+                elif self.fatality == True:
                     self.dead = True
                     self.infected = False
                     self.recovery_steps = 0
                     self.model.grid.remove_agent(self)
+                else:
+                    self.fatality = False
             if self.strata == "child":
-                if random.random() < self.model.fatal_children / 100:
+                if self.fatality == None:
+                    self.fatality = random.random() < self.model.fatal_children / 100
+                elif self.fatality == True:
                     self.dead = True
                     self.infected = False
                     self.recovery_steps = 0
                     self.model.grid.remove_agent(self)
+                else:
+                    self.fatality = False
             if self.strata == "elder":
-                if random.random() < self.model.fatal_elderly / 100:
+                if self.fatality == None:
+                    self.fatality = random.random() < self.model.fatal_elderly / 100
+                elif self.fatality == True:
                     self.dead = True
                     self.infected = False
                     self.recovery_steps = 0
                     self.model.grid.remove_agent(self)
+                else:
+                    self.fatality = False
             if self.strata == "pregnant":
-                preg_rand = random.random()
-                if preg_rand < self.model.fatal_pregnant / 100:
+                if self.fatality == None:
+                    self.fatality = random.random() < self.model.fatal_pregnant / 100
+                elif self.fatality == True:
                     self.dead = True
                     self.infected = False
                     self.recovery_steps = 0
                     self.model.grid.remove_agent(self)
+                else:
+                    self.fatality = False
 
         # Cases when the agent cannot be infected
         if self.infected | self.recovered | self.dead | (self.type == "wall"):
@@ -287,6 +303,7 @@ class SIR(Model):
         }
         self.infection_period = infection_period
         self.transmission = transmission
+        self.fatality = None
         self.schedule = RandomActivation(self)
         self.running = True
 
