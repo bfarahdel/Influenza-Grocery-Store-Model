@@ -50,7 +50,7 @@ python3 run.py
 
 ## Deploy as a Web Service
 
-The python application can be deployed as a web service with the provided requirements.txt file and/or the Procfile for [Heroku](https://www.heroku.com/).
+The python application can be deployed as a web service with the provided requirements.txt file and the Procfile if [Heroku](https://www.heroku.com/) is used for deployment.
 
 # Instructions
 
