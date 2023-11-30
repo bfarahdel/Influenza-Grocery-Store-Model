@@ -4,7 +4,7 @@
 
 This is an age-structured SIR (Susceptible, Infected, Removed) Agent-based model of influenza A/H1N1 in an artificial Grocery Store.
 
-![demo](/docs/demo.png)
+[![Video](https://dl.dropboxusercontent.com/scl/fi/bwpoqmd0f7gfsvagoy723/demo_video_image.png?rlkey=s1tlqazfprlyg6gtjxx754tfp&dl=0)](https://dl.dropboxusercontent.com/scl/fi/jf24sjg31056uawnhphwf/demo.mp4?rlkey=rgayfov31p8077uut4nw4hhgc&dl=0)
 
 # Installation
 
