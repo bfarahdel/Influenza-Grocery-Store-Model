@@ -2,7 +2,7 @@
 
 # Age-structured SIR Agent-based Modeling of Influenza A/H1N1 in an Artificial Grocery Store
 
-This is an age-structured SIR (Susceptible, Infected, Removed) Agent-based model of influenza A/H1N1 in an artificial Grocery Store.
+This is an age-structured SIR (Susceptible, Infected, Removed) Agent-based model of influenza A/H1N1 in an artificial Grocery Store. Supplementary materials (including a poster of the project) can be found on [Google Drive](https://drive.google.com/drive/folders/11BgF3SqGOmpFpuHpX1kl5BQMvJIDOLD-?usp=sharing).
 
 [![Video](https://dl.dropboxusercontent.com/scl/fi/bwpoqmd0f7gfsvagoy723/demo_video_image.png?rlkey=s1tlqazfprlyg6gtjxx754tfp&dl=0)](https://dl.dropboxusercontent.com/scl/fi/jf24sjg31056uawnhphwf/demo.mp4?rlkey=rgayfov31p8077uut4nw4hhgc&dl=0)
 
@@ -55,7 +55,7 @@ The python application can be deployed as a web service with the provided requir
 # Instructions
 
 1. Set the parameters on the left panel. Each population strata is represented below.
-   <br>
+   `<br>`
    ![legend](/docs/legend.png)
 2. If any of the parameters were changed, click the "Reset" button. Otherwise, continue to step 3.
 3. Click the "Start" button.
